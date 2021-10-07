@@ -103,89 +103,104 @@ exitBtn = button.Button(360, 300, btnExitImage, 0.5)
 	
 # game loop for window not to close (and other events)
 running = True
+#level1BtnPressed, exitBtnPressed = False, False
+
 while running:
 	window.fill((0, 0, 0))		      # change the color of the background
 	#window.blit(backgroundImage, (0,0))    # adds the background to all the window
 
-	if level1Btn.draw(window):   # the level 1 button was pressed
-		print('Level1')
-	elif exitBtn.draw(window):   # the exit button was pressed
-		print('Exit')
+	level1BtnPressed = level1Btn.draw(window)
+	exitBtnPressed = exitBtn.draw(window)
 
 	for event in pygame.event.get():          # pygame.event.get():  captures all the events ocurring
-
 		if event.type == pygame.QUIT:        # if an event is close the window
 			running = False
+
+	pygame.display.update()
+
+	# level 1 events
+	while level1BtnPressed:   # the level 1 button was pressed
+		#print('Level1')
+		window.fill((0, 0, 0))
+
+		for event in pygame.event.get():          # pygame.event.get():  captures all the events ocurring
+
+			if event.type == pygame.QUIT:        # if an event is close the window
+				level1BtnPressed = False
+				running = False
+
+			if event.type == pygame.KEYDOWN:      # if any key is pressed
+				if event.key == pygame.K_LEFT:
+					playerDx = -1
+					print("left arrow is pressed")
+				if event.key == pygame.K_RIGHT:	
+					playerDx = 1
+					print("right arrow is pressed")
+				if event.key == pygame.K_SPACE:
+					if bulletState == "ready":
+						bulletX = playerX
+						fireBullet(bulletX, bulletY)
+						mixer.Sound("laser.wav").play()	
+
+			if event.type == pygame.KEYUP:                                       # to release the keystroke
+				if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+					playerDx = 0
+					print("keystroke has been released")
+
+		# players boundary conditions and movement		
+		if playerX <= 0:
+			playerX = 0
+		elif playerX >= width-64:    # 64 pixel = large and height of spacecraft
+			playerX = width-64
+
+		playerX += playerDx	
+
+		# enemies boundary conditions and movement
+		for i in range(numEnemies):
+			if enemyY[i] > 440:
+				for j in range(numEnemies):
+					enemyY[j] = 2000
+				gameOverText()
+				break
+
+			if enemyX[i] <= 0:
+				enemyDx[i] = 0.3
+				enemyY[i] += enemyDy[i] 
+			elif enemyX[i] >= width-64:
+				enemyDx[i] = -0.3
+				enemyY[i] += enemyDy[i] 
+
+			enemyX[i] += enemyDx[i]	
+
+			# collision	
+			if hasCollided(enemyX[i], enemyY[i], bulletX, bulletY):
+				bulletInitialState()
+				scoreValue += 1;
+				enemyX[i], enemyY[i] = random.randint(0, width-64), random.randint(50, height/3)   # one enemy per collision appears in a random position again
+				mixer.Sound("explosion.wav").play()
+				
+			enemy(enemyX[i], enemyY[i], i)
 		
-		if event.type == pygame.KEYDOWN:      # if any key is pressed
-			if event.key == pygame.K_LEFT:
-				playerDx = -1
-				print("left arrow is pressed")
-			if event.key == pygame.K_RIGHT:	
-				playerDx = 1
-				print("right arrow is pressed")
-			if event.key == pygame.K_SPACE:
-				if bulletState == "ready":
-					bulletX = playerX
-					fireBullet(bulletX, bulletY)
-					mixer.Sound("laser.wav").play()	
 
-		if event.type == pygame.KEYUP:                                       # to release the keystroke
-			if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-				playerDx = 0
-				print("keystroke has been released")
+		# bullet boundary conditions and movement  
+		if bulletState == "fire":
+			#window.blit(bulletImage, (bulletX+16, bulletY-10))
+			fireBullet(bulletX, bulletY)
+			bulletY -= bulletDy
 
-	# players boundary conditions and movement		
-	if playerX <= 0:
-		playerX = 0
-	elif playerX >= width-64:    # 64 pixel = large and height of spacecraft
-		playerX = width-64
-
-	playerX += playerDx	
-
-	# enemies boundary conditions and movement
-	for i in range(numEnemies):
-		if enemyY[i] > 440:
-			for j in range(numEnemies):
-				enemyY[j] = 2000
-			gameOverText()
-			break
-
-		if enemyX[i] <= 0:
-			enemyDx[i] = 0.3
-			enemyY[i] += enemyDy[i] 
-		elif enemyX[i] >= width-64:
-			enemyDx[i] = -0.3
-			enemyY[i] += enemyDy[i] 
-
-		enemyX[i] += enemyDx[i]	
-
-		# collision	
-		if hasCollided(enemyX[i], enemyY[i], bulletX, bulletY):
+		if bulletY <= 0:
 			bulletInitialState()
-			scoreValue += 1;
-			enemyX[i], enemyY[i] = random.randint(0, width-64), random.randint(50, height/3)   # one enemy per collision appears in a random position again
-			mixer.Sound("explosion.wav").play()
-			
-		enemy(enemyX[i], enemyY[i], i)
-	
 
-	# bullet boundary conditions and movement  
-	if bulletState == "fire":
-		#window.blit(bulletImage, (bulletX+16, bulletY-10))
-		fireBullet(bulletX, bulletY)
-		bulletY -= bulletDy
+		player(playerX, playerY)                  # the player is drawn
+		showScore(textX, textY)
+		pygame.display.update()                   # update the screen
 
-	if bulletY <= 0:
-		bulletInitialState()
 
-	player(playerX, playerY)                  # the player is drawn
-	showScore(textX, textY)
-	pygame.display.update()                   # update the screen
-
+	if exitBtnPressed:   # the exit button was pressed
+		print('Exit')
+		running = False
 
 pygame.quit()
-
 
 
 # for more fonts go to: dafont.com
