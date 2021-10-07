@@ -213,26 +213,27 @@ while running:
 
 		# to finish the level (win):
 		if scoreValue==2:
-			#for j in range(numEnemies):
-			#	enemyY[j] = 2000
+			for j in range(numEnemies):
+				enemyY[j] = -2000
+			playerY=-2000
+
 			winnerText()
 			playAgainText()
-			"""
-			notPressed = True
-			while notPressed:
-				for event in pygame.event.get():
-					if event.type == pygame.KEYDOWN:
-						if event.key == pygame.K_y:
-							notPressed = False
-							break
-							# resetear todo 
-							
-						elif event.key == pygame.K_n:
-							notPressed = False
-							running = False
+			  # blucle infinito...
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT: 
+					running = False
 
-			break
-			"""				
+				if event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_y:
+						level1BtnPressed=False# resetear todo    
+						
+					elif event.key == pygame.K_n:
+						running = False
+						level1BtnPressed = False
+
+			#break
+								
 
 		player(playerX, playerY)                  # the player is drawn
 		showScore(textX, textY)
