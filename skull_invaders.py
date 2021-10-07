@@ -20,8 +20,8 @@ pygame.display.set_icon(icon)
 #backgroundImage = pygame.image.load("background.png")
 
 # add background sound
-mixer.music.load("background.wav")
-mixer.music.play(-1)          # -1 to play on loop
+#mixer.music.load("background.wav")
+#mixer.music.play(-1)          # -1 to play on loop
 
 # image of the player that will be in the screen
 playerImage = pygame.image.load("spaceship.png")
@@ -61,8 +61,20 @@ def showScore(x:int, y:int)->None:
 def gameOverText()->None:
 	gameOverFont = pygame.font.Font("SuperMario256.ttf", 70)
 	gameOver = gameOverFont.render("GAME OVER", True, (255, 255, 255))
-	window.blit(gameOver, (180, 250))
+	window.blit(gameOver, (150, 250))
 
+def winnerText()->None:
+	winnerFont = pygame.font.Font("SuperMario256.ttf", 50)
+	winner = winnerFont.render("YOU WON THE LEVEL!", True, (255, 255, 255))
+	window.blit(winner, (100, 250))	
+
+def playAgainText()->None:
+	playAgainFont = pygame.font.Font("SuperMario256.ttf", 30)
+	playAgain = playAgainFont.render("Wanna play again?", True, (255, 255, 255))
+	playAgainOptions = playAgainFont.render("Press y if true, n to exit.", True, (255, 255,255))
+	window.blit(playAgain, (100, 350))	
+	window.blit(playAgainOptions, (100, 400))
+	
 # function that creates the player
 def player(x:int, y:int)->None:
 	window.blit(playerImage, (x, y))       # blit(img, (x,y)):  draws the img in the coordinates (x,y)
@@ -118,9 +130,16 @@ while running:
 
 	pygame.display.update()
 
+	music = False
+
 	# level 1 events
 	while level1BtnPressed:   # the level 1 button was pressed
 		#print('Level1')
+		if music==False:   # hacerla funcion !
+			mixer.music.load("background.wav")
+			mixer.music.play(-1)          # -1 to play on loop
+			music = True
+
 		window.fill((0, 0, 0))
 
 		for event in pygame.event.get():          # pygame.event.get():  captures all the events ocurring
@@ -157,7 +176,8 @@ while running:
 
 		# enemies boundary conditions and movement
 		for i in range(numEnemies):
-			if enemyY[i] > 440:
+			# is GAME OVER if the enemy y pos is the same as the player
+			if enemyY[i] > 440:   
 				for j in range(numEnemies):
 					enemyY[j] = 2000
 				gameOverText()
@@ -175,7 +195,7 @@ while running:
 			# collision	
 			if hasCollided(enemyX[i], enemyY[i], bulletX, bulletY):
 				bulletInitialState()
-				scoreValue += 1;
+				scoreValue += 1
 				enemyX[i], enemyY[i] = random.randint(0, width-64), random.randint(50, height/3)   # one enemy per collision appears in a random position again
 				mixer.Sound("explosion.wav").play()
 				
@@ -190,6 +210,29 @@ while running:
 
 		if bulletY <= 0:
 			bulletInitialState()
+
+		# to finish the level (win):
+		if scoreValue==2:
+			#for j in range(numEnemies):
+			#	enemyY[j] = 2000
+			winnerText()
+			playAgainText()
+			"""
+			notPressed = True
+			while notPressed:
+				for event in pygame.event.get():
+					if event.type == pygame.KEYDOWN:
+						if event.key == pygame.K_y:
+							notPressed = False
+							break
+							# resetear todo 
+							
+						elif event.key == pygame.K_n:
+							notPressed = False
+							running = False
+
+			break
+			"""				
 
 		player(playerX, playerY)                  # the player is drawn
 		showScore(textX, textY)
