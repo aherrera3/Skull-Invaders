@@ -61,7 +61,7 @@ def showScore(x:int, y:int)->None:
 def gameOverText()->None:
 	gameOverFont = pygame.font.Font("SuperMario256.ttf", 70)
 	gameOver = gameOverFont.render("GAME OVER", True, (255, 255, 255))
-	window.blit(gameOver, (150, 250))
+	window.blit(gameOver, (160, 250))
 
 def winnerText()->None:
 	winnerFont = pygame.font.Font("SuperMario256.ttf", 50)
@@ -131,6 +131,7 @@ while running:
 	pygame.display.update()
 
 	music = False
+	playOnce = False
 
 	# level 1 events
 	while level1BtnPressed:   # the level 1 button was pressed
@@ -180,7 +181,28 @@ while running:
 			if enemyY[i] > 440:   
 				for j in range(numEnemies):
 					enemyY[j] = 2000
+				
 				gameOverText()
+				playAgainText()
+
+				mixer.music.stop()   # to stop the bkg music
+				if playOnce==False:	
+					mixer.Sound("game-over.wav").play()
+					playOnce=True	
+				
+				for event in pygame.event.get():
+					if event.type == pygame.QUIT: 
+						level1BtnPressed = False
+						running = False
+
+					if event.type == pygame.KEYDOWN:
+						if event.key == pygame.K_y:
+							level1BtnPressed=False# resetear todo    
+							
+						elif event.key == pygame.K_n:
+							running = False
+							level1BtnPressed = False
+					
 				break
 
 			if enemyX[i] <= 0:
@@ -219,9 +241,16 @@ while running:
 
 			winnerText()
 			playAgainText()
-			  # blucle infinito...
+
+			mixer.music.stop()   # to stop the bkg music
+
+			if playOnce==False:	
+				mixer.Sound("level-completed.wav").play()
+				playOnce=True	
+
 			for event in pygame.event.get():
 				if event.type == pygame.QUIT: 
+					level1BtnPressed = False
 					running = False
 
 				if event.type == pygame.KEYDOWN:
